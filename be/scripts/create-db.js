@@ -8,12 +8,12 @@ const cardsPath = path.join(__dirname, "..", "data", "cards.json");
 // Ensure data dir exists
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-// Remove existing DB so we get a clean "ready" file
+// Remove existing DB
 if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
 
 const db = new Database(dbPath);
 
-// Schema matching db-setup.sql (SQLite compatible)
+// Schema matching db-setup.sql
 db.exec(`
   CREATE TABLE Cards (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

@@ -42,10 +42,6 @@ app.get("/cards", (req, res) => {
   res.json(body);
 });
 
-/**
- * GET /players?name=xxx – check if player name is unique (not in Scores)
- * Response: { "unique": true } if name is available, { "unique": false } if already in Scores
- */
 app.get("/players", (req, res) => {
   const name = String(req.query.name ?? "").trim();
   if (!name) {

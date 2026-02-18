@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Memory Game API
+  title: Ka-Mon Memory Game API
   description: Backend API for the Memory Game (cards and scores).
   version: 1.0.0
 
