@@ -17,6 +17,5 @@ CREATE TABLE `MemoryGameDB`.`Scores` (
     `score` int NOT NULL,
     `playerName` varchar(100) NOT NULL,
     `dateTime` datetime NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `Scores_playerName_uq` (`playerName`)
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;

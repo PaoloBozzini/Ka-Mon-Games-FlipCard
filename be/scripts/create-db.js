@@ -25,7 +25,7 @@ db.exec(`
   CREATE TABLE Scores (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     score INTEGER NOT NULL,
-    playerName VARCHAR(100) NOT NULL UNIQUE,
+    playerName VARCHAR(100) NOT NULL,
     dateTime TEXT NOT NULL
   );
 `);

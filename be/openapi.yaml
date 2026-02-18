@@ -6,36 +6,10 @@ info:
 
 servers:
   - url: http://localhost:3000
-    description: Local development
+    description: Local development (UI at /, API at /api/...)
 
 paths:
-  /players:
-    get:
-      summary: Check if player name is unique
-      description: Returns whether the given player name is available (unique) or already taken, based on the Scores table.
-      operationId: getPlayersCheck
-      parameters:
-        - name: name
-          in: query
-          required: true
-          description: Player name to check
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Uniqueness result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlayerUnique'
-        '400':
-          description: Missing or empty name
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /cards:
+  /api/cards:
     get:
       summary: Get cards by theme
       description: Returns a list of cards for the given theme, limited by pair count (for memory game pairs).
@@ -77,10 +51,10 @@ paths:
                   error: { type: string }
                   allowed: { type: array, items: { type: string } }
 
-  /score:
+  /api/score:
     post:
       summary: Store a score
-      description: Saves a player score. Player name must be unique (not already present in Scores). Date/time is set by the API.
+      description: Saves a player score. Date/time is set by the API.
       operationId: postScore
       requestBody:
         required: true
@@ -89,42 +63,50 @@ paths:
             schema:
               $ref: '#/components/schemas/ScoreInput'
       responses:
-        '204':
-          description: Score stored successfully (no content)
-        '400':
-          description: Invalid request body or player name already taken
+        '201':
+          description: Score created; returns the created row (use id for PUT /api/score)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Update a player's score
-      description: Updates the score for the given player name. Date/time is set by the API. Returns 404 if player is not in Scores.
-      operationId: putScore
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScoreInput'
-      responses:
-        '204':
-          description: Score updated successfully (no content)
+                $ref: '#/components/schemas/ScoreResponse'
         '400':
           description: Invalid request body
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update a score by id
+      description: Updates the score for the given score id (returned by POST /api/score or GET /api/scores). Date/time is set by the API. Returns 404 if id not found.
+      operationId: putScore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreUpdateInput'
+      responses:
+        '200':
+          description: Score updated; returns the latest row from DB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScoreResponse'
+        '400':
+          description: Invalid request body (id and score required; id must be positive integer)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
-          description: Player not found
+          description: Score not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /scores:
+  /api/scores:
     get:
       summary: Get score leaderboard
       description: Returns scores sorted by score descending, 25 per page, with global rank.
@@ -150,15 +132,6 @@ paths:
 
 components:
   schemas:
-    PlayerUnique:
-      type: object
-      required: [unique]
-      properties:
-        unique:
-          type: boolean
-          description: true if name is available, false if already taken
-          example: true
-
     Card:
       type: object
       required: [id, theme, name, url]
@@ -188,10 +161,46 @@ components:
           type: number
           example: 232
 
+    ScoreResponse:
+      type: object
+      description: Created score (returned by POST /api/score)
+      required: [id, playerName, score, dateTime]
+      properties:
+        id:
+          type: integer
+          description: Score row id (use for PUT /api/score)
+          example: 1
+        playerName:
+          type: string
+          example: name
+        score:
+          type: number
+          example: 232
+        dateTime:
+          type: string
+          format: date-time
+          example: "2025-03-15T13:45:30.000Z"
+
+    ScoreUpdateInput:
+      type: object
+      required: [id, score]
+      properties:
+        id:
+          type: integer
+          description: Score id (from POST response or GET /api/scores)
+          example: 1
+        score:
+          type: number
+          example: 500
+
     ScoreEntry:
       type: object
-      required: [playerName, score, rank, dateTime]
+      required: [id, playerName, score, rank, dateTime]
       properties:
+        id:
+          type: integer
+          description: Score row id (use for PUT /api/score)
+          example: 1
         playerName:
           type: string
           example: name3

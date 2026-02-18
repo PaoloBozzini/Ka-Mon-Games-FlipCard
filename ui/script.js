@@ -1,6 +1,6 @@
 const API_BASE = typeof window !== "undefined" && window.API_BASE != null
   ? window.API_BASE
-  : "http://localhost:3000";
+  : "";
 
 let cardImages = [];
 let firstCard = null;
@@ -22,7 +22,7 @@ let totalPairs = 0;
 let matchedPairs = 0;
 
 async function fetchCards() {
-  const res = await fetch(`${API_BASE}/cards?theme=dogs&pairCount=8`);
+  const res = await fetch(`${API_BASE}/api/cards?theme=flags&pairCount=8`);
   if (!res.ok) throw new Error("Failed to load cards");
   const data = await res.json();
   return Array.isArray(data) ? data : (data.cards || []);
