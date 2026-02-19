@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const Database = require("better-sqlite3");
+const knex = require("knex");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,11 +12,17 @@ app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "..", "images")));
 
 const dbPath = path.join(__dirname, "data", "database.sqlite3");
-const db = new Database(dbPath);
+const knexInstance = knex({
+  client: "sqlite3",
+  connection: {
+    filename: dbPath,
+  },
+  useNullAsDefault: true,
+});
 
 const ALLOWED_THEMES = ["dogs", "animals", "flags", "food", "plants"];
 
-app.get("/api/cards", (req, res) => {
+app.get("/api/cards", async (req, res) => {
   const theme = (req.query.theme || "dogs").toLowerCase();
   if (!ALLOWED_THEMES.includes(theme)) {
     return res.status(400).json({
@@ -26,11 +32,11 @@ app.get("/api/cards", (req, res) => {
   }
   const pairCount = Math.min(Math.max(1, parseInt(req.query.pairCount, 10) || 8), 100);
 
-  const rows = db
-    .prepare(
-      "SELECT id, theme, name, imgURL FROM Cards WHERE theme = ? LIMIT ?"
-    )
-    .all(theme, pairCount);
+  const rows = await knexInstance("Cards")
+    .select("id", "theme", "name", "imgURL")
+    .where("theme", theme)
+    .limit(pairCount)
+    .orderBy("id", "asc");
 
   const body = rows.map((row) => ({
     id: row.id,
@@ -42,7 +48,7 @@ app.get("/api/cards", (req, res) => {
   res.json(body);
 });
 
-app.post("/api/score", (req, res) => {
+app.post("/api/score", async (req, res) => {
   const { playerName, score } = req.body || {};
   if (typeof playerName !== "string" || typeof score !== "number") {
     return res.status(400).json({
@@ -53,16 +59,26 @@ app.post("/api/score", (req, res) => {
   if (!name) return res.status(400).json({ error: "playerName required" });
 
   const dateTime = new Date().toISOString();
-  const result = db
-    .prepare(
-      "INSERT INTO Scores (score, playerName, dateTime) VALUES (?, ?, ?)"
-    )
-    .run(score, name, dateTime);
-  const id = result.lastInsertRowid;
-  res.status(201).json({ id, playerName: name, score, dateTime });
+  await knexInstance("Scores").insert({
+    score,
+    playerName: name,
+    dateTime,
+  });
+
+  const row = await knexInstance("Scores")
+    .select("id", "playerName", "score", "dateTime")
+    .orderBy("id", "desc")
+    .first();
+
+  res.status(201).json({
+    id: row.id,
+    playerName: row.playerName,
+    score: row.score,
+    dateTime: row.dateTime,
+  });
 });
 
-app.put("/api/score", (req, res) => {
+app.put("/api/score", async (req, res) => {
   const { id, score } = req.body || {};
   if (id == null || typeof score !== "number") {
     return res.status(400).json({
@@ -75,15 +91,19 @@ app.put("/api/score", (req, res) => {
   }
 
   const dateTime = new Date().toISOString();
-  const result = db
-    .prepare("UPDATE Scores SET score = ?, dateTime = ? WHERE id = ?")
-    .run(score, dateTime, scoreId);
-  if (result.changes === 0) {
+  const updated = await knexInstance("Scores")
+    .where("id", scoreId)
+    .update({ score, dateTime });
+
+  if (updated === 0) {
     return res.status(404).json({ error: "score not found" });
   }
-  const row = db
-    .prepare("SELECT id, playerName, score, dateTime FROM Scores WHERE id = ?")
-    .get(scoreId);
+
+  const row = await knexInstance("Scores")
+    .select("id", "playerName", "score", "dateTime")
+    .where("id", scoreId)
+    .first();
+
   res.status(200).json({
     id: row.id,
     playerName: row.playerName,
@@ -94,15 +114,15 @@ app.put("/api/score", (req, res) => {
 
 const SCORES_PER_PAGE = 25;
 
-app.get("/api/scores", (req, res) => {
+app.get("/api/scores", async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const offset = (page - 1) * SCORES_PER_PAGE;
 
-  const rows = db
-    .prepare(
-      "SELECT id, playerName, score, dateTime FROM Scores ORDER BY score DESC LIMIT ? OFFSET ?"
-    )
-    .all(SCORES_PER_PAGE, offset);
+  const rows = await knexInstance("Scores")
+    .select("id", "playerName", "score", "dateTime")
+    .orderBy("score", "desc")
+    .limit(SCORES_PER_PAGE)
+    .offset(offset);
 
   const body = rows.map((row, i) => ({
     id: row.id,
