@@ -14,66 +14,138 @@
 
   <body>
     <div class="container">
-      <div class="header">
-        <h1>Memory Game</h1>
+      <div class="header-logo">
+        <a href="/" aria-label="KAMON Memory Game">
+          <img
+            src="https://raw.githubusercontent.com/felesef/Ka-Mon-Games-FlipCard/908540935adb0ed0d7ac7ab8f3ad74bd9ca88280/kamon-logo.png"
+            alt="KAMON Memory Game"
+            class="logo"
+        /></a>
       </div>
 
-      <div class="setup-container" id="setupContainer">
-        <label for="userName">Enter user name:</label>
-        <input type="text" id="userName" placeholder="Your name" maxlength="100" />
-
-        <label for="theme">Choose Cards theme:</label>
-        <select id="theme">
-          <option value="random">random</option>
-          <option value="dogs">dogs</option>
-          <option value="flags">flags</option>
-          <option value="animals">animals</option>
-          <option value="plants">plants</option>
-          <option value="food">food</option>
-        </select>
-
-        <label for="level">Choose card count (row × columns):</label>
-        <select id="level">
-          <option value="4x2">level 1 (4×2)</option>
-          <option value="4x3">level 2 (4×3)</option>
-          <option value="4x4">level 3 (4×4)</option>
-          <option value="5x4">level 4 (5×4)</option>
-          <option value="5x6">level 5 (5×6)</option>
-        </select>
-
-        <button type="button" class="button button-primary" id="startGameBtn">Start the game</button>
+      <div class="stats-container">
+        <div class="status">
+          <span class="status-label">Moves:</span>
+          <span class="status-value" id="movesCounter">0</span>
+        </div>
+        <div class="status">
+          <span class="status-label">Time:</span>
+          <span class="status-value" id="timeCounter">0:00</span>
+        </div>
       </div>
+      <div class="setup-container-wrapper">
+        <div class="setup-row">
+          <div class="setup-container" id="setupContainer">
+            <label>
+            <input
+              type="text"
+              id="userName"
+              placeholder="Your name"
+              maxlength="100"
+            />
+            <button type="button" class="button" onclick="Guest()" disabled>
+              Play as Guest
+            </button>
+            <!-- tiles card -->
+            <div>
+            <ul class="title-list" data-group="choice">
 
-      <div class="game-area" id="gameArea" hidden>
-        <div class="stats-container">
-          <div class="status">
-            <span class="status-label">Moves:</span>
-            <span class="status-value" id="movesCounter">0</span>
-          </div>
-          <div class="status">
-            <span class="status-label">Time:</span>
-            <span class="status-value" id="timeCounter">0:00</span>
+              <li class="title-wrap">
+                <input type="radio" class="title-input" name="choice" value="animals" data-group="choice" data-title="title-1" data-value="1"/>
+                <span class="title" data-title-ui="title-1">
+                  <span class="title-media">
+                    <img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/user-interface-imgs/ui/animals-theme.png?raw=true" alt="Animals"/>
+                  </span>
+                  <span class="title-caption">
+                    <span>Animals</span>
+                  </span>
+                </span>
+                </label>
+              </li>
+              <li class="title-wrap">
+                <input type="radio" class="title-input" name="choice" value="flags" data-group="choice" data-title="title-1" data-value="1"/>
+                <span class="title" data-title-ui="title-1">
+                  <span class="title-media">
+                    <img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/user-interface-imgs/ui/flags-theme.png?raw=true" alt="Flags"/>
+                  </span>
+                  <span class="title-caption">
+                    <span>Flags</span>
+                  </span>
+                </span>
+                </label>
+              </li>
+              <li class="title-wrap">
+                <input type="radio" class="title-input" name="choice" value="food" data-group="choice" data-title="title-1" data-value="1"/>
+                <span class="title" data-title-ui="title-1">
+                  <span class="title-media">
+                    <img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/user-interface-imgs/ui/food-theme.png?raw=true" alt="Food"/>
+                  </span>
+                  <span class="title-caption">
+                    <span>Food</span>
+                  </span>
+                </span>
+                </label>
+              </li>
+              <li class="title-wrap">
+                <input type="radio" class="title-input" name="choice" value="plants" data-group="choice" data-title="title-1" data-value="1"/>
+                <span class="title" data-title-ui="title-1">
+                  <span class="title-media">
+                    <img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/user-interface-imgs/ui/plants-theme.png?raw=true" alt="Plants"/>
+                  </span>
+                  <span class="title-caption">
+                    <span>Plants</span>
+                  </span>
+                </span>
+                </label>
+              </li>
+                            <li class="title-wrap">
+                <input type="radio" class="title-input" name="choice" value="random" data-group="choice" data-title="title-1" data-value="1"/>
+                <span class="title" data-title-ui="title-1">
+                  <span class="title-media">
+                    <img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/user-interface-imgs/ui/random-theme.png?raw=true" alt="Random"/>
+                  </span>
+                  <span class="title-caption">
+                    <span>Random</span>
+                  </span>
+                </span>
+                </label>
+              </li>
+            </ul>
+            </div>
+        
           </div>
         </div>
-
-        <div class="game-board" id="gameBoard"></div>
 
         <div class="controls">
-          <button type="button" class="button" id="newGameBtn" onclick="typeof newGame==='function'&&newGame()">New Game</button>
-          <button type="button" class="button" id="scoreboardBtn" onclick="typeof openScoreboard==='function'&&openScoreboard()">Scoreboard</button>
+          <button type="button" class="button" onclick="newGame()">
+            New Game
+          </button>
+          <button type="button" class="button" onclick="openScoreboard()">
+            Scoreboard
+          </button>
         </div>
+      </div>
+
+      <button type="button" class="button button-primary" id="startGameBtn">
+        Start
+      </button>
+
+      <div class="game-area" id="gameArea" hidden>
+        <div class="game-board" id="gameBoard"></div>
       </div>
     </div>
 
     <div class="modal" id="winModal">
       <div class="modal-content">
-        <h2>Congratulations!</h2>
-        <h3>You win!</h3>
+        <h2>Great job!</h2>
+        <h3>⭐️ ⭐️ ⭐️</h3>
         <p>Moves: <span id="finalMoves">0</span></p>
         <p>Time: <span id="finalTime">0:00</span></p>
         <p>Score: <span id="finalScore">0</span></p>
         <p class="scoreboard-hint">Check the scoreboard for your rank.</p>
-        <button type="button" class="button" id="closeWinModalBtn" onclick="typeof closeModal==='function'&&closeModal()">X</button>
+        <button type="button" class="button" onclick="finishGame()">Finish</button>
+        <button type="button" class="button" id ="nextLevel" onclick="nextLevel()">Next</button>
+        <button type="button" class="button" onclick="closeModal()" disabled>X</button>
       </div>
     </div>
 
@@ -81,7 +153,9 @@
       <div class="modal-content modal-scoreboard">
         <h2>Scoreboard</h2>
         <div id="scoreboardList"></div>
-        <button type="button" class="button" id="closeScoreboardBtn" onclick="typeof closeScoreboard==='function'&&closeScoreboard()">Close</button>
+        <button type="button" class="button" onclick="closeScoreboard()">
+          Close
+        </button>
       </div>
     </div>
 

@@ -1,17 +1,26 @@
-const API_BASE = typeof window !== "undefined" && window.API_BASE != null
-  ? window.API_BASE
-  : "";
+const API_BASE =
+  typeof window !== "undefined" && window.API_BASE != null
+    ? window.API_BASE
+    : "";
 
-const THEMES = ["dogs", "flags", "animals", "plants", "food"];
+const THEMES = ["flags", "animals", "plants", "food"];
+// const LEVELS = {
+//   "4x2": { pairCount: 4, cols: 4, rows: 2 },
+//   "4x3": { pairCount: 6, cols: 4, rows: 3 },
+//   "4x4": { pairCount: 8, cols: 4, rows: 4 },
+//   "5x4": { pairCount: 10, cols: 5, rows: 4 },
+//   "5x6": { pairCount: 15, cols: 5, rows: 6 },
+// };
 const LEVELS = {
-  "4x2": { pairCount: 4, cols: 4, rows: 2 },
-  "4x3": { pairCount: 6, cols: 4, rows: 3 },
-  "4x4": { pairCount: 8, cols: 4, rows: 4 },
-  "5x4": { pairCount: 10, cols: 5, rows: 4 },
-  "5x6": { pairCount: 15, cols: 5, rows: 6 },
+  1: { pairCount: 4, cols: 4, rows: 2 },
+  2: { pairCount: 6, cols: 4, rows: 3 },
+  3: { pairCount: 8, cols: 4, rows: 4 },
+  4: { pairCount: 10, cols: 5, rows: 4 },
+  5: { pairCount: 15, cols: 5, rows: 6 },
 };
 
-let currentTheme = "dogs";
+let currentTheme;
+let currentLevel = 1;
 let currentPairCount = 8;
 let currentCols = 4;
 let currentRows = 4;
@@ -47,15 +56,22 @@ function getStoredUserName() {
 }
 
 async function fetchCards(theme, pairCount) {
-  const t = theme === "random" ? THEMES[Math.floor(Math.random() * THEMES.length)] : theme;
-  const res = await fetch(`${API_BASE}/api/cards?theme=${encodeURIComponent(t)}&pairCount=${pairCount}`);
+  const t =
+    theme === "random"
+      ? THEMES[Math.floor(Math.random() * THEMES.length)]
+      : theme;
+  const res = await fetch(
+    `${API_BASE}/api/cards?theme=${encodeURIComponent(t)}&pairCount=${pairCount}`,
+  );
   if (!res.ok) throw new Error("Failed to load cards");
   const data = await res.json();
-  return Array.isArray(data) ? data : (data.cards || []);
+  return Array.isArray(data) ? data : data.cards || [];
 }
 
 function mapCardsToUrls(cards) {
-  return cards.map((c) => (typeof c === "string" ? c : c.imgURL || c.url)).filter(Boolean);
+  return cards
+    .map((c) => (typeof c === "string" ? c : c.imgURL || c.url))
+    .filter(Boolean);
 }
 
 function setGameBoardGrid(cols, rows) {
@@ -147,7 +163,7 @@ function buildGame(imageUrls) {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML =
-      '<div class="card-front"><i class="fas fa-question"></i></div>' +
+      '<div class="card-front"><img src="https://github.com/felesef/Ka-Mon-Games-FlipCard/blob/main/ui/kamon_card_back.png?raw=true"/></div>' +
       '<div class="card-back"><img src="' +
       sorted[i] +
       '" alt=""></div>';
@@ -240,7 +256,8 @@ async function newGame() {
     startGame(urls);
   } catch (e) {
     console.error(e);
-    if (movesCounterElement) movesCounterElement.textContent = "Error loading cards";
+    if (movesCounterElement)
+      movesCounterElement.textContent = "Error loading cards";
   }
 }
 
@@ -250,13 +267,17 @@ function onStartGame() {
     alert("Please enter your name.");
     return;
   }
-  const themeSelect = document.getElementById("theme");
-  const levelSelect = document.getElementById("level");
-  const theme = themeSelect ? themeSelect.value : "dogs";
-  const levelKey = levelSelect ? levelSelect.value : "4x4";
-  const level = LEVELS[levelKey] || LEVELS["4x4"];
+  const theme = currentTheme;
+  if (!theme) {
+    alert("Please choose theme.");
+    return;
+  }
 
-  currentTheme = theme;
+  const level = LEVELS[currentLevel];
+  console.log("LEVEL....", currentLevel);
+  console.log("LEVEL....", level);
+  // currentTheme = theme;
+
   currentPairCount = level.pairCount;
   currentCols = level.cols;
   currentRows = level.rows;
@@ -283,7 +304,7 @@ async function openScoreboard() {
       data
         .map(
           (row) =>
-            `<div class="score-row"><span>#${row.rank} ${row.playerName}</span><span>${row.score}</span><span>${formatScoreboardDate(row.dateTime)}</span></div>`
+            `<div class="score-row"><span>#${row.rank} ${row.playerName}</span><span>${row.score}</span><span>${formatScoreboardDate(row.dateTime)}</span></div>`,
         )
         .join("");
   } catch (e) {
@@ -296,10 +317,12 @@ function formatScoreboardDate(isoString) {
   if (!isoString) return "—";
   try {
     const d = new Date(isoString);
-    return isNaN(d.getTime()) ? isoString : d.toLocaleString(undefined, {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
+    return isNaN(d.getTime())
+      ? isoString
+      : d.toLocaleString(undefined, {
+          dateStyle: "short",
+          timeStyle: "short",
+        });
   } catch (_) {
     return isoString;
   }
@@ -313,3 +336,49 @@ document.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.getElementById("startGameBtn");
   if (startBtn) startBtn.addEventListener("click", onStartGame);
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const titleList = document.querySelector(".title-list[data-group='choice']");
+  if (!titleList) return;
+
+  titleList.addEventListener("click", (e) => {
+    const wrap = e.target.closest(".title-wrap");
+    if (!wrap) return;
+
+    const radio = wrap.querySelector("input[type='radio'][name='choice']");
+    if (!radio) return;
+
+    // Select it (so the UI updates)
+    radio.checked = true;
+
+    // Get the value
+    const selectedValue = radio.value;
+    console.log("Selected theme:", selectedValue);
+
+    // Use it in your game (example)
+    currentTheme = selectedValue;
+  });
+
+  // Optional: also handle keyboard change (tab + space)
+  titleList.addEventListener("change", (e) => {
+    if (e.target.matches("input[type='radio'][name='choice']")) {
+      currentTheme = e.target.value;
+      console.log("Selected theme (change):", currentTheme);
+    }
+  });
+});
+
+function finishGame() {
+  openScoreboard();
+  closeModal();
+}
+
+function nextLevel() {
+  closeModal();
+  currentLevel += 1;
+  if (currentLevel == 5) {
+    const nextLevelBtn = document.getElementById("nextLevel");
+    nextLevelBtn.style.display = "none";
+  }
+  onStartGame();
+}
