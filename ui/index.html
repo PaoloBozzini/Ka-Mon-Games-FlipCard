@@ -14,6 +14,7 @@
 
   <body>
     <div class="container">
+      <!-- 🟡 [important] - Logo uses a hardcoded GitHub raw URL. Use a relative path (e.g. "../kamon-logo.png") so the asset works offline and loads faster -->
       <div class="header-logo">
         <a href="/" aria-label="KAMON Memory Game">
           <img
@@ -36,6 +37,8 @@
       <div class="setup-container-wrapper">
         <div class="setup-row">
           <div class="setup-container" id="setupContainer">
+            <!-- 🔴 [blocking] - The <label> element on the next line wraps the text input, the Guest button,
+                 AND the theme radio tiles. A <label> should only wrap a single form control. -->
             <label>
             <input
               type="text"
@@ -43,6 +46,8 @@
               placeholder="Your name"
               maxlength="100"
             />
+            <!-- 🔴 [blocking] - onclick="Guest()" calls a function that is never defined anywhere.
+                 The button is also "disabled" so it can never be clicked.  -->
             <button type="button" class="button" onclick="Guest()" disabled>
               Play as Guest
             </button>
@@ -50,6 +55,8 @@
             <div>
             <ul class="title-list" data-group="choice">
 
+              <!-- 🟡 [important] - All theme images use hardcoded GitHub blob URLs (from a specific branch).
+                   Use relative paths like "./animals-theme.png" so they work locally and on any deployment -->
               <li class="title-wrap">
                 <input type="radio" class="title-input" name="choice" value="animals" data-group="choice" data-title="title-1" data-value="1"/>
                 <span class="title" data-title-ui="title-1">
@@ -143,8 +150,12 @@
         <p>Time: <span id="finalTime">0:00</span></p>
         <p>Score: <span id="finalScore">0</span></p>
         <p class="scoreboard-hint">Check the scoreboard for your rank.</p>
+        <!-- 🔴 [blocking] - finishGame() and nextLevel() are NOT exposed to window in js/main.js.
+             These inline onclick handlers will throw "is not defined" errors at runtime.-->
         <button type="button" class="button" onclick="finishGame()">Finish</button>
         <button type="button" class="button" id ="nextLevel" onclick="nextLevel()">Next</button>
+        <!-- 🟡 [important] - This close button is disabled, so the user can never click it. Intentional? -->
+       
         <button type="button" class="button" onclick="closeModal()" disabled>X</button>
       </div>
     </div>
@@ -160,6 +171,8 @@
     </div>
 
     <script type="module" src="./js/main.js"></script>
+    <!-- 🟡 [important] - Mixing inline onclick handlers (in HTML above) with module-based JS is fragile.
+         Prefer addEventListener in main.js for all buttons to keep a single source of truth -->
     <script>
       setTimeout(function () {
         if (typeof newGame !== "function") {
